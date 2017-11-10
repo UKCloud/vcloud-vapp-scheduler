@@ -1,4 +1,4 @@
-*.creds
+*.cred
 *.config
 Config.ps1
 vapplist.csv
