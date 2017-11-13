@@ -1,6 +1,6 @@
 #####DO NOT EDIT BELOW THIS LINE####
 
-. Config.ps1
+. .\Config.ps1
 
 function Log($message)
 {
@@ -40,24 +40,23 @@ function ValidateTime($timeoff,$timeon)
 	}
 }
 
-function PowerOperation($operation,$vapp)
+function PowerOperation($operation,$vm)
 {
-	$vappname = $vapp.name
 	try
 	{
 		if ($operation -eq "On")
 		{
-			Log "Powering On $vappname"
-			start-civapp -vapp $vapp -Confirm:$false -RunAsync -EA "Stop"
+			Log "Powering On $vmname"
+			start-civm -VM $vm -Confirm:$false -RunAsync -EA "Stop"
 		}
 		elseif ($operation -eq "Off")
 		{
-			Log "Powering Off $vappname"
-			stop-civapp -vapp $vapp -Confirm:$false -RunAsync -EA "Stop"
+			Log "Powering Off $vmname"
+			stop-civm -VM $vm -Confirm:$false -RunAsync -EA "Stop"
 		}
 		else
 		{
-			Log "Invalid Power Operation For vApp $vappname"
+			Log "Invalid Power Operation For VM $vmname"
 		}
 	}
 	catch
@@ -65,7 +64,7 @@ function PowerOperation($operation,$vapp)
 		Log $Error[0].Exception.Message
 		if ($notifyerrors)
 		{
-			SendEmail "Power Operation For vApp $vappname Failed" $email
+			SendEmail "Power Operation For VM $vmname Failed" $email
 		}
 	}
 }
@@ -104,12 +103,12 @@ function GetCredentialsForOrg($orgid)
 	
 }
 
-function Login($orgid,$creds)
+function Login($orgid,$creds,$url)
 {
 	try
 	{
-		Log "Logging In: $vcloudaddress OrgId: $orgid"
-		Connect-CIServer -Org $orgid -Credential $creds -Server $vcloudaddress -EA "Stop" > $null
+		Log "Logging In: $url OrgId: $orgid"
+		Connect-CIServer -Org $orgid -Credential $creds -Server $url -EA "Stop" > $null
 	}
 	catch
 	{
@@ -136,31 +135,33 @@ foreach ($vapp in $vapplist)
 {
 	
 	$vappname = $vapp.vappName
-
+  $vmname = $vapp.vmName
 	$timeon = $vapp.timeOn
 	$timeoff = $vapp.timeOff
 	$email = $vapp.notifyEmail
 	$orgid = $vapp.orgId
-	
+  $url = $vapp.url
+write-host $orgid	
 	$creds = GetCredentialsForOrg $orgid
 	if ($creds -AND $orgid -ne $previousorgid)
 	{
-		Login $orgid $creds
+		Login $orgid $creds $url
 	}
 	Log "Processing vApp: $vappname"
 	$poweredon = $True
 	try
 	{
 		$vapp = get-civapp -Name $vappname -EA "Stop"
-		if($vapp.status -ne "PoweredOff")
+		$vm = get-civm -Name $vmname -VApp $vapp -EA "Stop"
+		if($vm.status -ne "PoweredOff")
 		{
 			$poweredon = $True
-			Log "	$vappname is currently Powered On"
+			Log "	$vmname is currently Powered On"
 		}
 		else
 		{
 			$poweredon= $False
-			Log "	$vappname is currently Powered Off"
+			Log "	$vmname is currently Powered Off"
 		}
 		
 		$expectedstatus = ValidateTime $timeoff $timeon
@@ -169,21 +170,21 @@ foreach ($vapp in $vapplist)
 			
 			if($expectedstatus)
 			{
-				Log "	$vappname Should Be Powered On"
-				PowerOperation "On" $vapp
+				Log "	$vmname Should Be Powered On"
+				PowerOperation "On" $vm
 				
 				
 			}
 			else
 			{
-			Log "	$vappname Should Be Powered Off"
-				PowerOperation "Off" $vapp
+			Log "	$vmname Should Be Powered Off"
+				PowerOperation "Off" $vm
 
 			}
 		}
 		else
 		{
-			Log "	$vappname is in the expected power state"
+			Log "	$vmname is in the expected power state"
 		}
 	}
 	catch 

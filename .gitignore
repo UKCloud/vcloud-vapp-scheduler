@@ -2,3 +2,4 @@
 *.config
 Config.ps1
 vapplist.csv
+*.log

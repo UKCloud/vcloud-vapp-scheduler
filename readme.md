@@ -1,19 +1,19 @@
 <h1>vCloud vApp Scheduler</h1>
 
-Powershell scripts to power vcloud Director vApps on and off according to a schedule.
+Powershell scripts to power vcloud Director VMs on and off according to a schedule.
 
 <h2>Introduction</h2>
 <p>
-Many customers wish to take advantage of the Skyscape’s hourly billing by turning VMs off when they are not in use. Currently there is no global functionality in the Skyscape platform to automate this for customers however it can be relatively easily achieved using the vCloud Director API.
-To assist customers with this Skyscape have written a PowerShell script which allows a range of vApps to be powered on and off according to a schedule. This document explains how the process works and what is required to install and configure the script.
+Many customers wish to take advantage of the UKCloud’s hourly billing by turning VMs off when they are not in use. Currently there is no global functionality in the Skyscape platform to automate this for customers however it can be relatively easily achieved using the vCloud Director API.
+To assist customers with this UKCloud have written a PowerShell script which allows a range of VMss to be powered on and off according to a schedule. This document explains how the process works and what is required to install and configure the script.
 </p>
 <h2>How It Works</h2>
 
-<p>Customers create a CSV (vapplist.csv) file containing a list of vApps which need controlling along with their Organization ID and the time at which each vApp should be powered on or off.
+<p>Customers create a CSV (vapplist.csv) file containing a list of VMs which need controlling along with their Organization ID and the time at which each VM should be powered on or off.
 Customers run the “SaveCredentials.ps1” script to capture the Organization login credentials to an encrypted file in the “creds” directory
 Customers configure a Windows scheduled task to run the vAppScheduler.ps1 script at regular intervals (every 5 minutes or so)
-Every 5 minutes (or whatever interval was specified) the script cycles through “vapplist.csv” logging in to vCloud Orgs to check whether the vApp is running or not. If the time window specified in “vapplist.csv” dictates that vApp should be running and the script deems that it is not then the script will start the vApp immediately. Likewise if the script deems that the vApp should not be running then it will stop it immediately.
-The script operates at a vApp level. This means that all VMs in the vApp will be powered on or off together. This is by design. Operating on an entire vApp means that the script has to make less calls to the vCloud API and is therefore more performant. It also means that customers can retain control over boot order and delays within the vApp via the vCloud portal.</p>
+Every 5 minutes (or whatever interval was specified) the script cycles through “vapplist.csv” logging in to vCloud Orgs to check whether the VM is running or not. If the time window specified in “vapplist.csv” dictates that VM should be running and the script deems that it is not then the script will start the VM immediately. Likewise if the script deems that the VM should not be running then it will stop it immediately.
+</p>
 
 <h2>Requirements</h2>
 
@@ -65,7 +65,6 @@ Config.ps1:
 `$vappfile = "c:\automation\vapplist.csv"`  
 `$mailfromaddress = "admin@yourcompany.com"`  
 `$mailserver = "smtp.yourcompany.local"`  
-`$vcloudaddress = "api.vcd.yourcloud.com"`   
 `$notifyerrors = $true`
 
 
@@ -86,7 +85,7 @@ A file named '1-129-2-6sd32.cred' will be saved in the 'creds' directory
 The main script looks for a csv file called 'vapplist.csv'. This file contains a list of vApps, the time they should be powered on and the time they should be powered off. The script then calculates the expected status of the vApp at any particular time and issues commands to vCloud Director to ensure the correct status is applied.
 
 The file should take the following format (example in GIT repo):  
-`    vappName          , timeOn , timeOff ,     notifyEmail      ,    orgId`  
-`    testvapp1         , 07:20  ,  08:20  , tlawrence@github.com , 000-ff-097f6`  
-`    testvapp2         , 00:00  ,  23:59  , tlawrence@github.com , 000-ff-097f6`  
-`vapp_in_other_org     , 10:00  ,  11:00  , tlawrence@github.com , 1-1-1-a356h`
+`    vappName ,          vmname , timeOn , timeOff ,     notifyEmail      ,    orgId      , url`  
+`    testvapp1 ,          vm1    , 07:20  ,  08:20  , tlawrence@github.com , 000-ff-097f6 , api.vcd.yourcloud.com`  
+`    testvapp2 ,         vm2    , 00:00  ,  23:59  , tlawrence@github.com , 000-ff-097f6  , api.vcd.yourcloud.com`  
+`vapp_in_other_org ,     vm3    , 10:00  ,  11:00  , tlawrence@github.com , 1-1-1-a356h   , api.vcd.someothercloud.com`
