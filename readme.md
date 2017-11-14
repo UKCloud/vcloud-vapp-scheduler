@@ -52,7 +52,7 @@ PowerCLI C:\GIT\scripts> mkdir creds`
 
 This step will vary based on the version of Windows / PowerCLI you are running. The command will probably need to look something like the following though:
 
-`C:\WINDOWS\system32\windowspowershell\v1.0\powershell.exe -psconsolefile "C:\Program Files (x86)\VMware\Infrastructure\vSphere PowerCLI\vim.psc1" -noexit -command c:\automation\VappScheduler.ps1`  
+`C:\WINDOWS\system32\windowspowershell\v1.0\powershell.exe  -noexit -command c:\automation\VappScheduler.ps1`  
 
 <h3>7. Configure global script settings</h3>
 

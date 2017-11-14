@@ -1,4 +1,6 @@
 #####DO NOT EDIT BELOW THIS LINE####
+Add-PSSnapin VMware.*;
+
 
 . .\Config.ps1
 
